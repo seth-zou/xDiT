@@ -7,6 +7,13 @@ from typing import Tuple, Optional
 import pytest
 import torch
 from diffusers import DiffusionPipeline
+
+# torch.testing._internal requires the optional `expecttest` package and a
+# CUDA-enabled build. Skip collection of this module gracefully on hosts that
+# lack them instead of crashing import.
+pytest.importorskip("expecttest")
+pytest.importorskip("torch.testing._internal.common_utils")
+
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,

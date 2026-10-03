@@ -55,7 +55,16 @@ def get_device_version():
     if _is_cuda():
         return torch.version.cuda
 
-    raise Exception("No Accelerators(AMD/NV GPU, AMD MI instinct accelerators) available")
+    # No GPU available. Return a sentinel so that module import and test
+    # collection succeed on CPU-only hosts (e.g. CI without GPUs). The real
+    # version gate in config.check_env() will still raise a clear RuntimeError
+    # when a GPU feature (e.g. use_cuda_graph) is actually requested on a host
+    # without an accelerator.
+    logger.warning(
+        "No Accelerators (AMD/NV GPU, AMD MI instinct accelerators) "
+        "available. CUDA/ROCm version checks will be skipped."
+    )
+    return "0.0"
 
 variables: Dict[str, Callable[[], Any]] = {
     # ================== Other Vars ==================
@@ -85,7 +94,13 @@ class PackagesEnvChecker:
 
     def check_flash_attn(self):
         try:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            if not torch.cuda.is_available():
+                logger.warning(
+                    "CUDA is not available, flash_attn cannot be used, "
+                    "using pytorch attention implementation"
+                )
+                return False
+            device = torch.device("cuda")
             gpu_name = torch.cuda.get_device_name(device)
             if "Turing" in gpu_name or "Tesla" in gpu_name or "T4" in gpu_name:
                 return False

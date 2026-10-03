@@ -1,6 +1,12 @@
 import unittest
 import torch
 import torch.distributed as dist
+import pytest
+
+# flash_attn requires a CUDA build and is unavailable on CPU-only hosts.
+# Skip collection of this module gracefully instead of crashing import.
+pytest.importorskip("flash_attn")
+
 from xfuser.core.long_ctx_attention.ring.ring_flash_attn import xdit_ring_flash_attn_func
 from xfuser.core.long_ctx_attention import xFuserLongContextAttention
 from flash_attn import flash_attn_func
