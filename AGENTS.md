@@ -110,6 +110,20 @@ logging, and `--durations=0`. The distributed adapter tests under
 `tests/context_parallel/test_diffusers_adapters.py` pin `CUDA_VISIBLE_DEVICES`
 and spawn pytest via subprocess — they require 2+ visible GPUs.
 
+### Run CPU-only smoke tests (no GPU required)
+
+`tests/test_cpu_smoke.py` is a CPU-runnable pytest suite that does not require
+CUDA, Ray, or model weights. It guards the `import xfuser` path on CPU-only
+torch, exercises the core `CacheManager` and config dataclasses on CPU, and
+drives the HTTP service end-to-end against the `MockEngine`. Run it with:
+
+```bash
+pytest tests/test_cpu_smoke.py -v
+```
+
+This is the fastest way to verify the package and the HTTP service are
+interactive-QA ready on a machine without GPUs.
+
 ### Run an example
 
 Examples live in `examples/` and are driven by `torchrun`. The product of all
@@ -219,7 +233,10 @@ dataclass field **and** an `add_argument` call in `xFuserArgs.add_cli_args`.
   (`MODEL_TYPE`, `N_GPUS`, `PARALLEL_ARGS`, `CFG_ARGS`) and `bash examples/run.sh`.
 - **Benchmark**: see `benchmark/run.sh` and `benchmark/single_node_latency_test.py`.
 - **Launch the HTTP service**: `python entrypoints/launch.py` (requires the `flask`
-  extra); see `docs/developer/Http_Service.md`.
+  extra); see `docs/developer/Http_Service.md`. For a CPU-only interactive-QA
+  mode that needs no GPU, Ray, or model weights, use
+  `python entrypoints/launch.py --mock` (the `MockEngine` produces a
+  deterministic placeholder PNG through the same request/response contract).
 - **Debug a parallel run**: reduce to `--nproc_per_node=1` with all parallel degrees
   at 1 to isolate logic errors from communication issues, then scale up.
 
