@@ -9,7 +9,6 @@ from xfuser.core.distributed import (
 )
 from xfuser.model_executor.pipelines.base_pipeline import xFuserVAEWrapper
 from xfuser.core.distributed.parallel_state import initialize_model_parallel
-import datetime
 from diffusers import FluxPipeline
 
 class WorkerBase(ABC):

@@ -20,3 +20,15 @@ repos:
         # pre-commit's default_language_version, see
         # https://pre-commit.com/#top_level-default_language_version
         language_version: python3.10
+  # Dead-code detector: vulture finds unused functions/methods/properties/
+  # classes/attributes that ruff's F401/F841 (imports/locals only) cannot
+  # detect across modules. The wrapper/register architecture and optional-dep
+  # availability checks produce false positives that are documented in
+  # vulture_whitelist.py. Run with `min-confidence 80` so only high-confidence
+  # dead code fails the hook; the whitelist is passed so intentional patterns
+  # do not trigger false failures.
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.16
+    hooks:
+      - id: vulture
+        args: [--min-confidence, "80", xfuser, entrypoints, vulture_whitelist.py]

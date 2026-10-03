@@ -1,0 +1,19 @@
+[tool.vulture]
+# xDiT dead-code detection configuration.
+#
+# vulture finds unused Python code (unused imports, variables, functions,
+# classes, properties, methods, attributes). Unlike ruff's F401/F841 rules,
+# vulture also detects unused *methods*, *properties*, and *class attributes*
+# across modules, which matters for the wrapper/register architecture xDiT uses.
+#
+# Run locally:
+#     vulture                # uses the paths/min_confidence below
+#     vulture --min-confidence 80
+#
+# vulture is also wired into pre-commit (.pre-commit-config.yaml) and CI
+# (.github/workflows/lint.yml).
+#
+# Whitelist of intentional false positives: vulture_whitelist.py
+# (each entry is documented there with the framework pattern it covers).
+min_confidence = 80
+paths = ["xfuser", "entrypoints", "vulture_whitelist.py"]
