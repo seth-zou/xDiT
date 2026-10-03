@@ -55,7 +55,19 @@ def get_device_version():
     if _is_cuda():
         return torch.version.cuda
 
-    raise Exception("No Accelerators(AMD/NV GPU, AMD MI instinct accelerators) available")
+    # No GPU accelerator (CUDA/ROCm) is available. This is common in CI and
+    # CPU-only development environments. Return a "0.0" sentinel version so
+    # that version comparisons against it (e.g. CUDA_VERSION checks) degrade
+    # gracefully instead of crashing the import of the package on machines
+    # without a GPU. Callers that genuinely require a GPU (CUDA Graph, NCCL)
+    # perform their own explicit availability checks and raise informative
+    # errors when the feature is actually exercised.
+    logger.warning(
+        "No GPU accelerator (CUDA/ROCm) detected. xDiT will run in a "
+        "CPU-only fallback mode; GPU-only features (CUDA Graph, NCCL, "
+        "model execution) are unavailable."
+    )
+    return "0.0"
 
 variables: Dict[str, Callable[[], Any]] = {
     # ================== Other Vars ==================
@@ -84,8 +96,18 @@ class PackagesEnvChecker:
         }
 
     def check_flash_attn(self):
+        # When CUDA is not available (e.g. CPU-only CI, development on machines
+        # without a GPU, or a CPU-only torch build), flash-attn cannot be used.
+        # Degrade gracefully to the PyTorch attention implementation instead of
+        # crashing the import of the whole package.
+        if not (torch.cuda.is_available() and _is_cuda()):
+            logger.warning(
+                "CUDA is not available, flash_attn is disabled. "
+                "Using pytorch attention implementation."
+            )
+            return False
         try:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            device = torch.device("cuda")
             gpu_name = torch.cuda.get_device_name(device)
             if "Turing" in gpu_name or "Tesla" in gpu_name or "T4" in gpu_name:
                 return False
