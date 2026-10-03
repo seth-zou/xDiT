@@ -1,0 +1,89 @@
+# Ruff configuration for xDiT
+#
+# Ruff is the project's linter/static analyzer. It complements `black` (which
+# only formats code) by catching real code-quality issues: undefined names,
+# unused imports/variables, bare excepts, mutable default arguments, f-strings
+# without placeholders, and more.
+#
+# Run it locally with:
+#     ruff check .
+#     ruff check . --fix        # auto-fix safe violations
+#
+# Ruff is also wired into pre-commit (`.pre-commit-config.yaml`) and CI
+# (`.github/workflows/lint.yml`).
+
+target-version = "py310"
+line-length = 88
+extend-exclude = [
+    "docs/developer/adding_models",
+    # Tutorial/reference snippets that are intentionally incomplete.
+]
+
+[lint]
+# Rule selection rationale:
+#
+#   E, W   - pycodestyle errors/warnings (whitespace, line length, bare except).
+#   F      - pyflakes: unused imports/variables, undefined names, redefinitions,
+#            f-strings without placeholders — real bug-catching rules.
+#   I      - isort: consistent import ordering (compatible with black).
+#   B      - flake8-bugbear: common pitfalls (mutable defaults, bare except in
+#            loops, zip without strict, raise-without-from).
+#   UP     - pyupgrade: modernize syntax toward the 3.10 target.
+#   C4     - flake8-comprehensions: unnecessary list/dict calls.
+#   SIM    - flake8-simplify: collapsible-if, yoda conditions, etc.
+#   RET    - flake8-return: superfluous else after return/raise.
+select = ["E", "W", "F", "I", "B", "UP", "C4", "SIM", "RET"]
+
+# Rules deliberately ignored because they conflict with project conventions or
+# would be noise on this codebase:
+#   E501   - line-too-long: black handles formatting; enforcing a hard line
+#            limit alongside black causes churn for no semantic benefit.
+#   E402   - module-import-not-at-top: the codebase conditionally imports
+#            optional deps (flash_attn, yunchang) after availability checks.
+#   E741   - ambiguous-variable-name: short names (l, I, O) are common in
+#            tensor/math code.
+#   B008   - function-call-in-default-argument: used for dataclass/decorator
+#            defaults.
+#   B905   - zip-without-explicit-strict: would flag many existing call sites;
+#            enable once the codebase is migrated.
+#   SIM102 - collapsible-if: nesting sometimes aids readability with the
+#            distributed guard clauses.
+#   SIM108 - if-else-block-instead-of-if-exp: ternaries hurt readability for
+#            multi-line branches.
+#   SIM114 - if-with-same-arms: often intentional for distinct guard docs.
+#   SIM117 - multiple-with-statements: kept nested for clarity.
+#   SIM118 - in-dict-keys: `key in dict` vs `key in dict.keys()` — cosmetic.
+#   RET504 - unnecessary-assign: assigning before return aids debugging.
+#   RET505 - superfluous-else-return: flagged heavily; style preference.
+#   RET506 - superfluous-else-raise: same rationale.
+ignore = [
+    "E501",
+    "E402",
+    "E741",
+    "B008",
+    "B905",
+    "SIM102",
+    "SIM108",
+    "SIM114",
+    "SIM117",
+    "SIM118",
+    "RET504",
+    "RET505",
+    "RET506",
+]
+
+[lint.per-file-ignores]
+# `__init__.py` files re-export symbols for the public API; unused imports are
+# expected there.
+"__init__.py" = ["F401", "I001"]
+# `register.py` files import classes used as decorators even when not referenced
+# directly in the module body.
+"**/register.py" = ["F401"]
+# Example/tutorial scripts occasionally keep imports for demonstration.
+"examples/*" = ["F401"]
+"docs/*" = ["F401", "I001"]
+# Benchmark scripts are standalone; allow looser imports.
+"benchmark/*" = ["F401", "F841"]
+
+[lint.isort]
+known-first-party = ["xfuser"]

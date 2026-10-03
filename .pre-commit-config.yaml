@@ -1,5 +1,16 @@
 repos:
-  # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
+  # Linter: ruff catches code-quality issues (unused imports/variables, undefined
+  # names, bare excepts, mutable default arguments, f-strings without
+  # placeholders, etc.) that black does not — black only formats.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        # Run the linter; auto-fix safe violations and require a re-stage.
+  # Formatter: using this mirror lets us use mypyc-compiled black, which is
+  # about 2x faster. Ruff's --fix only applies lint fixes, not formatting, so
+  # black remains responsible for formatting.
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 24.2.0
     hooks:

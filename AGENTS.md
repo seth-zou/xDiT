@@ -42,7 +42,8 @@ docs/                    # Method docs, performance reports, developer guide
 docker/                  # Dockerfile for the dev image
 setup.py                 # Package metadata + install_requires
 pytest.ini               # pytest config (tee-sys capture, verbose, INFO logging)
-.pre-commit-config.yaml # black (python3.10) via pre-commit
+.pre-commit-config.yaml # ruff (lint) + black (format) via pre-commit
+ruff.toml                # ruff linter configuration
 ```
 
 ## Setup & Installation
@@ -86,7 +87,8 @@ pip install pre-commit
 pre-commit install
 ```
 
-This runs `black` (targeting python3.10) on staged files.
+This runs `ruff` (linter, auto-fixes safe violations) and `black` (formatter,
+targeting python3.10) on staged files.
 
 ## Build & Test
 
@@ -189,6 +191,10 @@ dataclass field **and** an `add_argument` call in `xFuserArgs.add_cli_args`.
 
 ## Conventions
 
+- **Linting**: `ruff` (configured in `ruff.toml`) catches code-quality issues
+  (unused imports/variables, undefined names, bare excepts, mutable default
+  arguments, f-strings without placeholders, etc.). Run `ruff check .` or
+  `ruff check . --fix` before committing. Ruff also runs in pre-commit and CI.
 - **Formatting**: `black` (python3.10 target), enforced via pre-commit. Run
   `pre-commit run --all-files` before committing.
 - **Python version**: 3.10+. Do not use 3.11+-only syntax.
