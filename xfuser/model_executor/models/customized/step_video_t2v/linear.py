@@ -12,6 +12,7 @@ class ColumnParallelLinear(nn.Linear):
         self.tp_size = get_tensor_model_parallel_world_size()
         self.tp_rank = get_tensor_model_parallel_rank()
         self.tp_group = tp_group or get_tp_group()
+        self.gather_output = gather_output
 
         super().__init__(in_features, out_features, bias=bias)
 

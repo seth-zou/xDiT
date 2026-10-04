@@ -195,6 +195,15 @@ dataclass field **and** an `add_argument` call in `xFuserArgs.add_cli_args`.
   (unused imports/variables, undefined names, bare excepts, mutable default
   arguments, f-strings without placeholders, etc.). Run `ruff check .` or
   `ruff check . --fix` before committing. Ruff also runs in pre-commit and CI.
+- **Dead-code detection**: `vulture` (configured in `pyproject.toml` under
+  `[tool.vulture]`, with false positives documented in `vulture_whitelist.py`)
+  finds unused functions/methods/properties/classes/attributes that ruff's
+  import/local-only F401/F841 rules cannot detect across modules. Run
+  `vulture` (uses `min_confidence = 80`) before committing. When you add code
+  that vulture flags but is intentionally part of the wrapper/register pattern,
+  a PEP 562 lazy attribute, or an optional-dependency availability check, add
+  an entry to `vulture_whitelist.py` with a comment explaining why. Vulture
+  also runs in pre-commit and CI (`.github/workflows/lint.yml`).
 - **Formatting**: `black` (python3.10 target), enforced via pre-commit. Run
   `pre-commit run --all-files` before committing.
 - **Python version**: 3.10+. Do not use 3.11+-only syntax.

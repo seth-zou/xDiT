@@ -84,6 +84,14 @@ ignore = [
 "docs/*" = ["F401", "I001"]
 # Benchmark scripts are standalone; allow looser imports.
 "benchmark/*" = ["F401", "F841"]
+# vulture_whitelist.py silences intentional false positives by referencing
+# names that the wrapper/register pattern, PEP 562 lazy attributes, and
+# optional-dependency availability checks would otherwise flag. It is a
+# vulture-specific artifact, not production code:
+#   - F401: imports exist only to reference names for vulture
+#   - F821: bare names are referenced without being imported (string-dispatched)
+#   - B018: bare attribute references are the vulture whitelist mechanism
+"vulture_whitelist.py" = ["F401", "F821", "B018"]
 
 [lint.isort]
 known-first-party = ["xfuser"]
