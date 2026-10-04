@@ -1,0 +1,80 @@
+{
+  "name": "xDiT (NVIDIA PyTorch)",
+  // Build from a dedicated devcontainer Dockerfile so the dev container owns a
+  // complete, reproducible environment (apt deps, editable install, dev tools)
+  // rather than relying on a base image alone. The Dockerfile extends the same
+  // NVIDIA PyTorch image used by docker/Dockerfile, keeping run + dev stacks
+  // consistent and ensuring GPU support (CUDA / NCCL) works out of the box.
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  // Forward the GPU(s) into the container. xDiT parallelizes DiT inference
+  // across multiple GPUs (PipeFusion / USP / CFG / data parallel), so device
+  // access is required for anything beyond import-time smoke tests.
+  "runArgs": [
+    "--gpus",
+    "all",
+    "--shm-size=8g",
+    "--network=host",
+    "--cap-add=SYS_PTRACE",
+    "--security-opt",
+    "seccomp=unconfined"
+  ],
+  "containerEnv": {
+    // Default to 8 ranks so `torchrun` examples work without extra config.
+    // Override per-launch via --nproc_per_node as needed.
+    "CUDA_VISIBLE_DEVICES": "all",
+    "PYTHONUNBUFFERED": "1",
+    "PIP_NO_CACHE_DIR": "1"
+  },
+  // Install the xDiT (xfuser) package and dev tooling after the container is
+  // created. We use the editable install so source edits in the workspace are
+  // picked up immediately, mirroring the "Install from source" steps in
+  // AGENTS.md / README.md.
+  "postCreateCommand": "pip install --upgrade pip && pip install -e \".[diffusers,flash-attn,flask]\" && pip install pre-commit ruff==0.6.9 black && pre-commit install",
+  // VS Code settings + extensions aligned with the project's toolchain.
+  // ruff (lint) + black (format) are enforced via pre-commit and CI (.github/
+  // workflows/lint.yml). The Python + Pylance extensions give type-aware
+  // completions; the Jupyter extension supports the example notebooks/scripts.
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.analysis.typeCheckingMode": "basic",
+        "python.terminal.activateEnvironment": false,
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.black-formatter",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "ruff.lineLength": 88,
+        "ruff.lint.enable": true,
+        "ruff.format.enable": true,
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/*.egg-info": true,
+          "**/build": true,
+          "results/": true,
+          "profile/": true
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "ms-azuretools.vscode-docker",
+        "GitHub.copilot",
+        "redhat.vscode-yaml"
+      ]
+    }
+  },
+  // Run as the pre-created vs Code remote user so file ownership matches the
+  // workspace mount and git commits are not owned by root.
+  "remoteUser": "vscode"
+}
