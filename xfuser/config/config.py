@@ -31,6 +31,11 @@ def check_packages():
 
 def check_env():
     # https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/cudagraph.html
+    if not envs._is_cuda() and not envs._is_hip():
+        raise RuntimeError(
+            "use_cuda_graph requires an accelerator (NVIDIA/AMD GPU), "
+            "but none is available in the current environment."
+        )
     if CUDA_VERSION < version.parse("11.3"):
         raise RuntimeError("NCCL CUDA Graph support requires CUDA 11.3 or above")
     if TORCH_VERSION < version.parse("2.2.0"):

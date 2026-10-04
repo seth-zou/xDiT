@@ -7,8 +7,6 @@ import pytest
 
 from torch import distributed as dist
 import torch.multiprocessing as mp
-from distutils import spawn
-
 from diffusers.models.attention_processor import (
     Attention,
     AttentionProcessor,
